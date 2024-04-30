@@ -88,7 +88,7 @@ async function getCars($) {
 async function startParsing(ctx) {
   try {
     let { page, browser } = await startBrowser(
-      `https://suchen.mobile.de/fahrzeuge/search.html?dam=false&isSearchRequest=true&ml=%3A${setMileage}&ms=3500%3B93%3B%3B&ms=3500%3B45%3B%3B&p=%3A${setPrice}&pageNumber=1&ref=srpNextPage&refId=4314b5a9-b054-4f86-10ba-b88a0f0ff13c&s=Car&sb=rel&tr=AUTOMATIC_GEAR&vat=1&vc=Car`
+      `https://suchen.mobile.de/fahrzeuge/search.html?dam=false&isSearchRequest=true&ml=%3A${setMileage}&ms=3500%3B52%3B%3B&p=%3A${setPrice}&ref=dsp&s=Car&sb=rel&tr=AUTOMATIC_GEAR&vat=1&vc=Car`
     );
     let $ = await getHTML(page);
     if (
@@ -112,7 +112,7 @@ async function startParsing(ctx) {
     ).text();
     if (!parseInt(numberOfPages)) numberOfPages = 1;
     for (let i = 1; i <= numberOfPages; i++) {
-      let link = `https://suchen.mobile.de/fahrzeuge/search.html?dam=false&isSearchRequest=true&ml=%3A${setMileage}&ms=3500%3B93%3B%3B&ms=3500%3B45%3B%3B&p=%3A${setPrice}&pageNumber=${i}&ref=srpNextPage&refId=4314b5a9-b054-4f86-10ba-b88a0f0ff13c&s=Car&sb=rel&tr=AUTOMATIC_GEAR&vat=1&vc=Car`;
+      let link = `https://suchen.mobile.de/fahrzeuge/search.html?dam=false&isSearchRequest=true&ml=%3A${setMileage}&ms=3500%3B52%3B%3B&p=%3A${setPrice}&pageNumber=${i}&ref=srpNextPage&refId=a217d3fa-9756-03b7-9778-338219003b47&s=Car&sb=rel&tr=AUTOMATIC_GEAR&vat=1&vc=Car`;
       await page.goto(link);
       try {
         await page.waitForSelector("#root > div > div.NGBg0 > div.leHcX");
@@ -141,7 +141,6 @@ async function startParsing(ctx) {
       if (i == numberOfPages) {
         i = 0;
       }
-      console.log(i);
     }
   } catch (error) {
     console.log(error);
@@ -154,23 +153,28 @@ bot.start(async (ctx) => {
     ctx.message.from.username == "Furius16" ||
     ctx.message.from.username == "Richard9994"
   ) {
-    await ctx.reply(util.format(vars.configureText, setPrice, setMileage), {
-      reply_markup: {
-        inline_keyboard: [
-          [
-            { text: "Указать цену", callback_data: "price_option" },
-            { text: "Указать пробег", callback_data: "mileage_option" },
+    await ctx
+      .reply(util.format(vars.configureText, setPrice, setMileage), {
+        reply_markup: {
+          inline_keyboard: [
+            [
+              { text: "Указать цену", callback_data: "price_option" },
+              { text: "Указать пробег", callback_data: "mileage_option" },
+            ],
+            parseInt(setPrice) && parseInt(setMileage)
+              ? [{ text: "Начать парсинг", callback_data: "start_scraping" }]
+              : [],
           ],
-          parseInt(setPrice) && parseInt(setMileage)
-            ? [{ text: "Начать парсинг", callback_data: "start_scraping" }]
-            : [],
-        ],
-      },
-    });
+        },
+      })
+      .catch((err) => console.log(err));
   } else {
-    await ctx.reply("Ты не начальник").then((sentMessage) => {
-      messageIdsToDelete.push(sentMessage.message_id);
-    });
+    await ctx
+      .reply("Ты не начальник")
+      .then((sentMessage) => {
+        messageIdsToDelete.push(sentMessage.message_id);
+      })
+      .catch((err) => console.log(err));
   }
 });
 
@@ -182,24 +186,33 @@ bot.on("callback_query", async (ctx) => {
       .reply("Отправь боту цену в евро (только цифры)")
       .then((sentMessage) => {
         messageIdsToDelete.push(sentMessage.message_id);
-      });
+      })
+      .catch((err) => console.log(err));
   } else if (query == "mileage_option" && !setPriceFlag && !setMileageFlag) {
     setMileageFlag = true;
     await ctx
       .reply("Отправь боту пробег в км (только цифры)")
       .then((sentMessage) => {
         messageIdsToDelete.push(sentMessage.message_id);
-      });
+      })
+      .catch((err) => console.log(err));
   } else if (query == "start_scraping" && !parsingFlag) {
-    await ctx.reply("Начинаем парсинг...").then((sentMessage) => {
-      messageIdsToDelete.push(sentMessage.message_id);
-    });
+    await ctx
+      .reply("Начинаем парсинг...")
+      .then((sentMessage) => {
+        messageIdsToDelete.push(sentMessage.message_id);
+      })
+      .catch((err) => console.log(err));
     await startParsing(ctx);
   } else if (query == "start_scraping" && parsingFlag) {
-    await ctx.reply("Парсинг уже начат").then((sentMessage) => {
-      messageIdsToDelete.push(sentMessage.message_id);
-    });
+    await ctx
+      .reply("Парсинг уже начат")
+      .then((sentMessage) => {
+        messageIdsToDelete.push(sentMessage.message_id);
+      })
+      .catch((err) => console.log(err));
   }
+  ctx.answerCbQuery();
 });
 
 bot.on("message", async (ctx) => {
@@ -207,43 +220,48 @@ bot.on("message", async (ctx) => {
   if (setPriceFlag && !/[^\d]/.test(message)) {
     setPrice = parseInt(message);
     await ctx.deleteMessages(messageIdsToDelete);
-    await ctx.reply(util.format(vars.configureText, setPrice, setMileage), {
-      reply_markup: {
-        inline_keyboard: [
-          [
-            { text: "Указать цену", callback_data: "price_option" },
-            { text: "Указать пробег", callback_data: "mileage_option" },
+    await ctx
+      .reply(util.format(vars.configureText, setPrice, setMileage), {
+        reply_markup: {
+          inline_keyboard: [
+            [
+              { text: "Указать цену", callback_data: "price_option" },
+              { text: "Указать пробег", callback_data: "mileage_option" },
+            ],
+            parseInt(setPrice) && parseInt(setMileage)
+              ? [{ text: "Начать парсинг", callback_data: "start_scraping" }]
+              : [],
           ],
-          parseInt(setPrice) && parseInt(setMileage)
-            ? [{ text: "Начать парсинг", callback_data: "start_scraping" }]
-            : [],
-        ],
-      },
-    });
+        },
+      })
+      .catch((err) => console.log(err));
     setPriceFlag = false;
   } else if (setMileageFlag && !/[^\d]/.test(message)) {
     setMileage = parseInt(message);
     await ctx.deleteMessages(messageIdsToDelete);
-    await ctx.reply(util.format(vars.configureText, setPrice, setMileage), {
-      reply_markup: {
-        inline_keyboard: [
-          [
-            { text: "Указать цену", callback_data: "price_option" },
-            { text: "Указать пробег", callback_data: "mileage_option" },
+    await ctx
+      .reply(util.format(vars.configureText, setPrice, setMileage), {
+        reply_markup: {
+          inline_keyboard: [
+            [
+              { text: "Указать цену", callback_data: "price_option" },
+              { text: "Указать пробег", callback_data: "mileage_option" },
+            ],
+            parseInt(setPrice) && parseInt(setMileage)
+              ? [{ text: "Начать парсинг", callback_data: "start_scraping" }]
+              : [],
           ],
-          parseInt(setPrice) && parseInt(setMileage)
-            ? [{ text: "Начать парсинг", callback_data: "start_scraping" }]
-            : [],
-        ],
-      },
-    });
+        },
+      })
+      .catch((err) => console.log(err));
     setMileageFlag = false;
   } else {
     await ctx
       .reply("Неверно указанные данные или не выбрана опция")
       .then((sentMessage) => {
         messageIdsToDelete.push(sentMessage.message_id);
-      });
+      })
+      .catch((err) => console.log(err));
   }
 });
 
