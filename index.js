@@ -88,7 +88,7 @@ async function getCars($) {
 async function startParsing(ctx) {
   try {
     let { page, browser } = await startBrowser(
-      `https://suchen.mobile.de/fahrzeuge/search.html?dam=false&isSearchRequest=true&ml=%3A${setMileage}&ms=3500%3B52%3B%3B&p=%3A${setPrice}&ref=dsp&s=Car&sb=rel&tr=AUTOMATIC_GEAR&vat=1&vc=Car`
+      `https://suchen.mobile.de/fahrzeuge/search.html?dam=false&isSearchRequest=true&ml=%3A${setMileage}&ms=3500%3B93%3B%3B&ms=3500%3B45%3B%3B&p=%3A${setPrice}&pageNumber=1&ref=srpNextPage&refId=4314b5a9-b054-4f86-10ba-b88a0f0ff13c&s=Car&sb=rel&tr=AUTOMATIC_GEAR&vat=1&vc=Car`
     );
     let $ = await getHTML(page);
     if (
@@ -100,19 +100,22 @@ async function startParsing(ctx) {
           .match(/^\d+/)[0]
       ) == 0
     ) {
-      ctx.reply("Ничего не найдено по указанным параметрам");
+      await ctx.reply("Ничего не найдено по указанным параметрам");
       page.close();
       browser.close();
       parsingFlag = false;
       return;
     }
+    await ctx.reply(
+      `Парсим: ${`https://suchen.mobile.de/fahrzeuge/search.html?dam=false&isSearchRequest=true&ml=%3A${setMileage}&ms=3500%3B93%3B%3B&ms=3500%3B45%3B%3B&p=%3A${setPrice}&pageNumber=1&ref=srpNextPage&refId=4314b5a9-b054-4f86-10ba-b88a0f0ff13c&s=Car&sb=rel&tr=AUTOMATIC_GEAR&vat=1&vc=Car`}`
+    );
 
     let numberOfPages = $(
       "#root > div > div.NGBg0 > div.leHcX > article > section.HaBLt.ku0Os.ctcQH > div > div.Fqi7C > ul > li:nth-child(8) > button > span > span"
     ).text();
     if (!parseInt(numberOfPages)) numberOfPages = 1;
     for (let i = 1; i <= numberOfPages; i++) {
-      let link = `https://suchen.mobile.de/fahrzeuge/search.html?dam=false&isSearchRequest=true&ml=%3A${setMileage}&ms=3500%3B52%3B%3B&p=%3A${setPrice}&pageNumber=${i}&ref=srpNextPage&refId=a217d3fa-9756-03b7-9778-338219003b47&s=Car&sb=rel&tr=AUTOMATIC_GEAR&vat=1&vc=Car`;
+      let link = `https://suchen.mobile.de/fahrzeuge/search.html?dam=false&isSearchRequest=true&ml=%3A${setMileage}&ms=3500%3B93%3B%3B&ms=3500%3B45%3B%3B&p=%3A${setPrice}&pageNumber=${i}&ref=srpNextPage&refId=4314b5a9-b054-4f86-10ba-b88a0f0ff13c&s=Car&sb=rel&tr=AUTOMATIC_GEAR&vat=1&vc=Car`;
       await page.goto(link);
       try {
         await page.waitForSelector("#root > div > div.NGBg0 > div.leHcX");
