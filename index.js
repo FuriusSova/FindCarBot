@@ -1,6 +1,6 @@
 require("dotenv").config();
 const { Telegraf } = require("telegraf");
-const bot = new Telegraf(process.env.BOT_TOKEN, { handlerTimeout: 86500000 });
+const bot = new Telegraf(process.env.BOT_TOKEN, { handlerTimeout: Infinity });
 const puppeteer = require("puppeteer-extra");
 const chr = require("cheerio");
 const util = require("util");
